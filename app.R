@@ -62,7 +62,7 @@ server <- function(input, output, session) {
         
         if (is.null(myogr())) return(NULL)
         
-        simple_ogr <- gSimplify(myogr(), tol = input$tol)
+        simple_ogr <- gSimplify(myogr(), tol = input$tol, topologyPreserve = TRUE)
         
         shinyjs::enable("download")
         
