@@ -36,13 +36,13 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
       
       mainPanel(
           h4("Original Map"),
-          leafletOutput("map", height = "300px"),
+          withSpinner(leafletOutput("map", height = "300px")),
           textOutput("size"),
           
           hr(),
           
           h4("Simple Map"),
-          leafletOutput("simple_map", height = "300px"),
+          withSpinner(leafletOutput("simple_map", height = "300px")),
           textOutput("simple_size")
       )
    )
@@ -51,12 +51,21 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
 server <- function(input, output, session) {
     mytmpdir <- tempdir()
     
+    observeEvent(input$shp, {
+        unzip(input$shp$datapath, exdir = mytmpdir)
+    })
+    
+    myogr_path <- reactive({
+        rel_path <- file.path(mytmpdir, gsub(".zip$", "", input$shp$name))
+        if (length(dir(rel_path)) == 0) rel_path <- file.path(mytmpdir)
+        
+        return(rel_path)
+    })
+
     myogr <- reactive({
         if (is.null(input$shp)) return(NULL)
-
-        unzip(input$shp$datapath, exdir = mytmpdir)
         
-        readOGR(dsn = file.path(mytmpdir), stringsAsFactors = FALSE)
+        readOGR(dsn = myogr_path(), stringsAsFactors = FALSE)
     })
     
     simplified <- reactive({
@@ -104,7 +113,7 @@ server <- function(input, output, session) {
     })
     
     mylayer <- reactive({
-        return(gsub(".shp", "", dir(mytmpdir)[grep(".shp$", dir(mytmpdir))]))
+        return(gsub(".shp", "", dir(myogr_path())[grep(".shp$", dir(myogr_path()))]))
     })
     
     output$download <- downloadHandler(
