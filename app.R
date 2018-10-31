@@ -6,6 +6,8 @@ library(rgdal)
 library(leaflet)
 library(shinyjs)
 
+options(shiny.maxRequestSize=30*1024^2)
+
 ## Set images resource path
 addResourcePath("images", "images")
 
